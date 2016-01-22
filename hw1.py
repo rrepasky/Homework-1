@@ -44,8 +44,31 @@ def simulate(start_date, end_date, equities, allocations):
     # Normalize prices according to first day
     na_normalized_price = na_price / na_price[0, :]
 
-    # Multiply each column by its allocation
-    print na_normalized_price
+    # Weight each normalized price
+    na_weighted = na_normalized_price * allocations
+
+    # Value for each day (row-wise sum)
+    na_values = na_weighted.copy().sum(axis=1)
+
+    # Return for each day
+    na_returns = na_values.copy()
+    tsu.returnize0(na_returns)
+
+    # Volatility (standard deviation) of daily returns
+    std_dev = np.std(na_returns)
+
+    # Get average daily return
+    avg_return = np.mean(na_returns)
+
+    # Calculate Sharpe ratio
+    sharpe = np.sqrt(252) * (avg_return / std_dev)
+
+    print sharpe
+
+    print std_dev
+
+    print avg_return
+
 
 
 
@@ -56,10 +79,9 @@ if __name__ == "__main__":
     end_date = dt.datetime(2011, 12, 31)
 
     equities = ['AAPL', 'GLD', 'GOOG', 'XOM']
-    allocations = [0.25, 0.25, 0.25, 0.25]
+    allocations = [0.4, 0.4, 0.0, 0.2]
 
     simulate(start_date, end_date, equities, allocations)
-
 
 
 
