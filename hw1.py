@@ -78,6 +78,7 @@ if __name__ == "__main__":
     start_date = dt.datetime(2011, 1, 1)
     end_date = dt.datetime(2011, 12, 31)
 
+	#Data to verify proper implementation
     equities = ['AAPL', 'GLD', 'GOOG', 'XOM']
     allocations = [0.4, 0.4, 0.0, 0.2]
 
