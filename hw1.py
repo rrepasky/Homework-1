@@ -51,23 +51,30 @@ def simulate(start_date, end_date, equities, allocations):
     na_values = na_weighted.copy().sum(axis=1)
 
     # Return for each day
-    na_returns = na_values.copy()
-    tsu.returnize0(na_returns)
+    na_daily_returns = na_values.copy()
+    tsu.returnize0(na_daily_returns)
 
     # Volatility (standard deviation) of daily returns
-    std_dev = np.std(na_returns)
+    std_dev = np.std(na_daily_returns)
 
     # Get average daily return
-    avg_return = np.mean(na_returns)
+    avg_daily_return = np.mean(na_daily_returns)
 
     # Calculate Sharpe ratio
-    sharpe = np.sqrt(252) * (avg_return / std_dev)
+    number_of_trading_days = len(na_daily_returns)
 
-    print sharpe
+    sharpe = np.sqrt(number_of_trading_days) * (avg_daily_return / std_dev)
 
-    print std_dev
+    # Calculate cumulative daily return using formula
+    # daily_cum_ret(t) = daily_cum_ret(t-1) * (1 + daily_ret(t))
 
-    print avg_return
+    daily_cum_ret = np.zeros(number_of_trading_days)
+    daily_cum_ret[0] = na_daily_returns[0]
+
+    for i in np.arange(1, number_of_trading_days, 1):
+        daily_cum_ret[i] = daily_cum_ret[i-1] * (1 + na_daily_returns[i])
+
+    return std_dev, avg_daily_return, sharpe, daily_cum_ret[number_of_trading_days-1]
 
 
 
@@ -78,11 +85,32 @@ if __name__ == "__main__":
     start_date = dt.datetime(2011, 1, 1)
     end_date = dt.datetime(2011, 12, 31)
 
-	#Data to verify proper implementation
     equities = ['AAPL', 'GLD', 'GOOG', 'XOM']
-    allocations = [0.4, 0.4, 0.0, 0.2]
 
-    simulate(start_date, end_date, equities, allocations)
+    #allocations = [0.4, 0.4, 0.0, 0.2]
+    #simulate(start_date, end_date, equities, allocations)
+
+    optimum_allocation = []
+    best_sharpe = 0.0
+    #sharpe = 0.0
+
+    for a1 in np.arange(0.0, 1.0, 0.1):
+        for a2 in np.arange(0.0, 1.0, 0.1):
+            for a3 in np.arange(0.0, 1.0, 0.1):
+                for a4 in np.arange(0.0, 1.0, 0.1):
+                    if a1 + a2 + a3 + a4 == 1.0:
+                        alloc = [a1, a2, a3, a4]
+
+                        vol, daily_ret, sharpe, cum_ret = simulate(start_date, end_date, equities, alloc)
+
+                        if sharpe > best_sharpe:
+                            best_sharpe = sharpe
+                            optimum_allocation = alloc
+
+    print "Optimum Allocation: ", optimum_allocation
+    print "Sharpe Ratio: ", best_sharpe
+
+
 
 
 
