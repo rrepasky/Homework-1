@@ -69,12 +69,20 @@ def simulate(start_date, end_date, equities, allocations):
     # daily_cum_ret(t) = daily_cum_ret(t-1) * (1 + daily_ret(t))
 
     daily_cum_ret = np.zeros(number_of_trading_days)
-    daily_cum_ret[0] = 0
+    daily_cum_ret[0] = 1.0
 
     for i in np.arange(1, number_of_trading_days, 1):
         daily_cum_ret[i] = daily_cum_ret[i-1] * (1 + na_daily_returns[i])
 
-    return std_dev, avg_daily_return, sharpe, daily_cum_ret[number_of_trading_days-1]
+    print daily_cum_ret
+    print na_daily_returns
+    print sharpe
+    print std_dev
+    print avg_daily_return
+    print daily_cum_ret[number_of_trading_days-1]
+
+
+    #return std_dev, avg_daily_return, sharpe, daily_cum_ret[number_of_trading_days-1]
 
 
 
@@ -87,12 +95,13 @@ if __name__ == "__main__":
 
     equities = ['AAPL', 'GLD', 'GOOG', 'XOM']
 
-    #allocations = [0.4, 0.4, 0.0, 0.2]
-    #simulate(start_date, end_date, equities, allocations)
-
+    allocations = [0.4, 0.4, 0.0, 0.2]
+    simulate(start_date, end_date, equities, allocations)
+'''
     optimum_allocation = []
     best_sharpe = 0.0
     best_cum = 0.0
+    best_avg_daily_ret = 0.0
     #sharpe = 0.0
 
     for a1 in np.arange(0.0, 1.0, 0.1):
@@ -107,6 +116,7 @@ if __name__ == "__main__":
                         if sharpe > best_sharpe:
                             best_sharpe = sharpe
                             best_cum = cum_ret
+                            best_avg_daily_ret = avg_daily_ret
                             optimum_allocation = alloc
 
     print "Start Date: ", start_date
@@ -115,7 +125,12 @@ if __name__ == "__main__":
     print "Optimum Allocations: ", optimum_allocation
     print "Sharpe Ratio: ", best_sharpe
     print "Volatility (stddev of daily returns): ", vol
-    print "Average Daily Return: ", avg_daily_ret
+    print "Average Daily Return: ", best_avg_daily_ret
     print "Cumulative Return: ", best_cum
+'''
+
+
+
+
 
 
