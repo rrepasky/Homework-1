@@ -110,7 +110,14 @@ def event_profiler(ldt_timestamps, symbols_source):
                 s_filename=report_name, b_market_neutral=True, b_errorbars=True,
                 s_market_sym='SPY')
 
-def get_orders(orders_csv, ls_symbols, ls_data):
+def get_orders(orders_csv):
+
+    # Open orders file and build list of symbols and list of
+    # orders to be executed.
+
+    ls_symbols = list()
+    ls_data = list ()
+
     s_symbols = set()
 
     reader = csv.reader(open(orders_csv, 'rU'), delimiter=',')
@@ -121,15 +128,19 @@ def get_orders(orders_csv, ls_symbols, ls_data):
 
     ls_data.sort(key=lambda x:(x[0],x[1],x[2]))
 
-    ls_symbols = list(s_symbols)
+    for symbol in s_symbols:
+         ls_symbols.append(symbol)
 
-def get_market_data(ls_symbols, ls_data, d_data):
+    return ls_symbols, ls_data
+
+def get_market_data(ls_symbols, start_year, start_month, start_day, end_year, end_month, end_day):
+
+    d_market_data = dict()
 
     # Set up date range
 
-    last_row = len(ls_data) - 1
-    dt_start = dt.datetime(int(ls_data[0][0]), int(ls_data[0][1]), int(ls_data[0][2]))
-    dt_end = dt.datetime(int(ls_data[last_row][0]), int(ls_data[last_row][1]), int(ls_data[last_row][2]))
+    dt_start = dt.datetime(start_year, start_month, start_day)
+    dt_end = dt.datetime(end_year, end_month, end_day)
 
     # Get market data
 
@@ -138,23 +149,51 @@ def get_market_data(ls_symbols, ls_data, d_data):
     ldt_timestamps = du.getNYSEdays(dt_start, dt_end, dt.timedelta(hours=16))
 
     ldf_data = databoj.get_data(ldt_timestamps, ls_symbols, ls_keys)
-    d_data = dict(zip(ls_keys, ldf_data))
+    d_market_data = dict(zip(ls_keys, ldf_data))
+
+    return ldt_timestamps, d_market_data
+
+def get_portfolio_value(starting_cash, ls_csv_data, ls_symbols, ldt_timestamps, d_market_data):
+
+    # Add CASH to symbols
+    ls_symbols.append("_CASH")
+
+    # Create data frame
+    trades = pd.DataFrame(index=list(ldt_timestamps), columns=list(ls_symbols))
+
+    # Each row is as follows:  YYYY MM DD SYMBOL BUY/SELL NUM_SHARES
+    for row in ls_csv_data:
+        row_date = dt.datetime(int(row[0]), int(row[1]), int(row[2]), 16)
+
+
+
+    current_cash = starting_cash
 
 
 def marketsim(starting_cash, orders_csv, values_csv):
 
     ls_symbols = list()
-    ls_data = list()
-    d_data = dict()
+    ls_csv_data = list()
+    d_market_data = dict()
 
-    get_orders(orders_csv, ls_symbols, ls_data)
+    ls_symbols, ls_csv_data = get_orders(orders_csv)
 
-    get_market_data(ls_symbols, ls_data, d_data)
+    # Get first trade date
 
-    print ls_data[0][0]
-    #print s_symbols
-    #print ls_data
-    print d_data
+    start_year = int(ls_csv_data[0][0])
+    start_month = int(ls_csv_data[0][1])
+    start_day = int(ls_csv_data[0][2])
+
+    # Get last trade date
+
+    last_row = len(ls_csv_data) - 1
+    end_year = int(ls_csv_data[last_row][0])
+    end_month = int(ls_csv_data[last_row][1])
+    end_day = int(ls_csv_data[last_row][2])
+
+    ldt_timestamps, d_market_data = get_market_data(ls_symbols, start_year, start_month, start_day, end_year, end_month, end_day)
+
+    get_portfolio_value(starting_cash, ls_csv_data, ls_symbols, ldt_timestamps, d_market_data)
 
 if __name__ == '__main__':
 
@@ -168,14 +207,4 @@ if __name__ == '__main__':
     print values_csv
 
     marketsim(starting_cash, orders_csv, values_csv)
-
-    #dt_start = dt.datetime(2008, 1, 1)
-    #dt_end = dt.datetime(2009, 12, 31)
-    #ldt_timestamps = du.getNYSEdays(dt_start, dt_end, dt.timedelta(hours=16))
-
-    # Symbols from S&P 2008
-    #event_profiler(ldt_timestamps, 'sp5002008')
-
-    # Symbols from S&P 2012
-    #event_profiler(ldt_timestamps, 'sp5002012')
 
